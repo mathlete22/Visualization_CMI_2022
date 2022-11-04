@@ -1,0 +1,360 @@
+---
+title: "FIFA World Cup"
+author: "Aniket Saha"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning=F,message=F,comment=NA,echo = FALSE)
+```
+
+## \underline{Introduction}
+
+Football is the most popular sport in the world. FIFA World Cup is the biggest sporting event in the world in terms of watching and people involved. According to FIFA, around 3.75 billion people around the world witnessed the previous edition in 2018, held in Russia. Now, that is almost half the planet.
+This year 2022, 22nd edition of this famed competition will be held in Qatar. We are doing this project to get some insights about the teams participating. Moreover, we'll try to get some idea about which players or teams will perform well in this upcoming  mega event.
+Now, we have collected some data from official FIFA website and some other secondary data from Kaggle. We will perform our analysis based on these data sets.
+
+## \underline{Data Sets and Variables}
+
+We have used the following data sets:
+
+1. \textbf{Teams2022:} In this data set, we have:teams(country names), latest FIFA points of each team, ranks of each team based on points, region(continents).
+\textbf{Please note} that Australia participates through Asian qualification bracket, hence Australia is in group Asia.
+\newline \textbf{Source of Data:} Self collected from FIFA website. Link: <https://www.fifa.com/fifa-world-ranking/men>
+
+
+2. \textbf{WorldCup\_All:} In this data set, we have the data of all the world cup matches since 1930. The variables are: year, host country, home team, away team, goals scored by home team, goals scored by away team, whether the game was played in a neutral venue and whether the home team won, drew or lost.
+\newline \textbf{Source of Data:} Kaggle. Link: <https://www.kaggle.com/datasets/ccsitai/worldcupdataset>
+
+3. \textbf{WorldCup\_History:} In this data set, we have the years in which world cup were held over the years, number of teams, winner, runner up, whether host country became winner or runner up, total number of matches, total number of goals scored, average goals per game.
+\newline \textbf{Source of Data:} Self collected from Wikipedia. Link: <https://en.wikipedia.org/wiki/FIFA_World_Cup>
+
+
+4. \textbf{Players\_FIFA23:} This is a subset of a very large data set containing all the details of all the football players around the world based on the EA Sports' game FIFA23 ratings which has very realistic data about the players.
+\newline In this data set, we have the top 120 players in the game. The variables are: player name, country that they play for, overall rating, their position of playing (forward, midfielder, defender, goalkeeper).
+\newline \textbf{Source of Data:} Kaggle: <https://www.kaggle.com/datasets/bryanb/fifa-player-stats-database?select=FIFA23_official_data.csv>
+
+\newpage
+
+## \underline{Analysis}
+### \underline{Where They Are From}
+
+\textbf{By the following plot we are trying to understand from which regions the teams come from. We are using the Teams2022 data set.}
+\newline To begin with, we will see a couple of pictorial representation of this data.
+
+
+```{r}
+data=read.csv("D://Visualization/Teams2022.csv")
+t=table(data$Region)
+lab=c("Africa","Asia","Europe","North America","South America")
+pct= round(t/sum(t)*100,1)
+lab=paste(lab,"(",pct,sep="")
+lab=paste(lab,"%",")",sep="")
+par(mfrow=c(1,2),mar=c(2,3,2,5),cex=0.5)
+barplot(t,col="steelblue4",border="black",cex.names = 0.7,ylim=c(0,15))
+pie(t,col=gray(seq(0.2,1,length=5)),border="black",labels=lab)
+```
+\newline 
+
+Now, we want to know about the number of representatives from each region. To do that we simply show this data in a tabular form.
+```{r}
+print(t)
+```
+We can see that Europe has the most representative countries, 13, followed by Asia with 6, Africa and South America with 5 and then North America with 4.
+\newline
+\newline
+\textbf{Comment:} Europe has more participants in the tournament as they have more nations compared to other continents like North and South America, and also the ranking of many European teams are much higher than that of Asian or African teams.
+\newpage
+
+### \underline{A Bit of History}
+
+\textbf{Now, we want to see how the previous editions of the world cup went.}
+\newline In this section we will know which team won, which team came runners up and the number of goals scored per game in each of the tournaments. We will use the WorldCup_History data set.
+\newline
+\textbf{•} \textbf{First of all, we will plot a barplot to see the teams, who have won the world cup before, and how many times they have won it.}\newline
+```{r}
+wch=read.csv("D://Visualization/WorldCup_History.csv")
+barplot(table(wch$Winner), cex.names=0.7,col="yellow2",main="Barplot Showing World Cup Winners")
+```
+
+\textbf{Comment:} We can see that Brazil won the world cup 5 times, the most any country has achieved.
+\newline Moreover, all the teams who have won the world cup are either from Europe or South America. Also European teams have won the tournament 12 times and South American nations have won it 9 times.
+\newpage
+\textbf{•} \textbf{Now we will try to find out whether playing in a certain continent or region favours any team.}
+
+We observe that among the 21 world cups so far, 11 were held in Europe, 8 were held in American continents and 2 were held in Neutral countries (One in each of Africa and Asia).
+This year the tournament will be held in Qatar which is in Asia and falls under the Neutral category in our classification. We will plot a subdivided barplot to depict the results of the world cup classified based on regions.
+```{r}
+library(ggplot2)
+plot.new()
+win=matrix(c(10,1,1,7,1,1),ncol=3)
+barplot(win,width=c(50,50,50),main="World Cup Wins Based on Regions",ylab="Number of Wins",col=c("steelblue1","steelblue4"),ylim=c(0,12),names.arg=c("Europe","Americas","Neutral"),xlab="World Cups Hosted In",legend.text=c("Europe","South America"),args.legend = list("topright"))
+```
+\newline
+\textbf{Comment:} Here we can see that when the world cup is hosted in Europe, European countries dominate over others. Whereas while the world cup is hosted in American continents, South American teams dominate over others. In neutral countries, we get that the contest is even.
+\newline
+\newpage
+### \underline{What to Expect This Year}
+
+\textbf{• Now we will try to predict the number of goals to be scored in this year's world cup.}
+\newline First we will plot a line diagram showing the GPG or goals per game of each edition of the world cup. Since the number of matches and teams are not equal in all the tournaments, we use this GPG variable for our analysis.
+\newline
+```{r}
+wch=read.csv("D://Visualization/WorldCup_History.csv")
+plot.new()
+plot(wch$Year,wch$Average.GPG,type='b',lty=3,xlab="Year",ylab="Average Goals per Game",col="black",lwd=2.5,main="Line Diagram Showing Average GPG in World Cups",xlim=c(1928,2022))
+```
+
+We observe that the average number of goals per game has decreased over the years.
+We will fit three types of models:
+
+1. Linear
+2. Quadratic
+3. Cubic
+
+Based on these models we will try to predict the average goal per game amount of 2022 world cup.
+\newline
+We have constructed our models and all the three plots are merged together along with their interpretation in the following page.
+\newpage
+\textbf{Plots are prepared to predict the average GPG of world cup 2022}
+\newline
+```{r}
+library(ggplot2)
+wch=read.csv("D://Visualization/WorldCup_History.csv")
+plot(wch$Year,wch$Average.GPG,type='b',lty=3,xlab="Year",ylab="Average Goals per Game",col="black",lwd=3.5,main="All Models",xlim=c(1928,2022))
+par(new=T)
+lines(wch$Year, lwd=3.5,fitted(lm(wch$Average.GPG~wch$Year+I(wch$Year^2)+I(wch$Year^3))), type="l",xlab='',ylab='',col="darkgreen")
+lines(wch$Year,lwd=3.5, fitted(lm(wch$Average.GPG~wch$Year+I(wch$Year^2)), type="b",xlab='',ylab=''),col="red")
+lines(wch$Year, lwd=3.5,fitted(lm(wch$Average.GPG~wch$Year), type="l",xlab='',ylab=''),col="blue")
+legend("topright",c("Linear","Quadratic","Cubic"),lty=1:2,
+col=c("blue","red","darkgreen"),bty="n")
+```
+We have made the following observations and conclusions from the graph:
+
+1. \textbf{From the Linear Model:} We see that the blue line depicting the linear model actually decreases to 0 and beyond before reaching Year=2022. Hence no conclusion can be made based on the linear model as average goal per game can not be negative.
+
+2. \textbf{From the Quadratic model:} From the quadratic model, we can at least make some inference. It also, however, decreases but doesn't go to 0 before Year=2022. \newline According to this model, the average GPG of the 2022 world cup will be approximately 2.5. This is less than the last two world cups, but more than the 2006, 2010 world cups.
+
+3. \textbf{From the Cubic Model:} The cubic model shows that the average goal per game is increasing since 2000 and the average GPG for 2022 world cup will be approximately 3.0, which is higher than last 12 world cups.
+
+\textbf{Comments:} So the three models are quite varied in their predictions. However, based on the plots, we can say that the quadratic model and the cubic model fit the data better than the linear model. And hence we take the mean of these two estimates as an estimate of average GPG of 2022 world cup. Therefore the average GPG of this year's world cup will approximately be $(2.5+3)/2=2.75$
+
+\newpage 
+### \underline{Home Sweet Home?}
+
+\textbf{• Now we will try to understand whether playing on home turf results in performing well in the world cup.}
+\newline We represent the following tabular data to see how much the home team finishes in top2 or top4.
+```{r results='asis'}
+library(lemon)
+library(knitr)
+wch=read.csv("D://Visualization/WorldCup_History.csv")
+kable(data.frame(Year=wch$Year,Host=wch$Host,Winner=wch$Winner,Second=wch$Runner.up,Third=wch$Third.Place,Fourth=wch$Fourth.Place,Host_Top2=wch$Host.in.Final,Host_Top4=wch$Host.in.Semis),caption='World Cup Winners',align='c')
+```
+Here in the data, we should note that:
+
+1. In 2002, South Korea and Japan were joint hosts of the world cup.
+2. "Host_Top2" and "Host_Top4" show whether the host country finished in top 2 or top 4 respectively. 0 means they did not and 1 means they did.
+3. Some countries like Yugoslavia, Soviet Union, Czechoslovakia do not exist anymore but they played in the mentioned tournaments many years back.
+4. Germany participated as West Germany in some editions of the world cup, however, for easier analysis we have kept the name Germany in our data throughout. For more information on this please refer to <https://en.wikipedia.org/wiki/Germany_at_the_FIFA_World_Cup>
+
+We observe that the total number of times the host country have finished in top 2 is `r sum(wch$Host.in.Final)`
+\newline
+On the other hand, the total number of times the host country have finished in top 4 is `r sum(wch$Host.in.Semis)`
+\newline
+If we want to find the proportion of times a host country has finished in top 4, then we have:$$p = 13/21 =`r sum(wch$Host.in.Semis)/21`$$
+Which is quite high.
+\newline
+Now we will depict this data via a subdivided barplot as follows in the next page.
+\newpage
+
+```{r}
+wch=read.csv("D://Visualization/WorldCup_History.csv")
+host=matrix(c(8,13),ncol=2)
+host1=matrix(c(13,8),ncol=2)
+par(mfrow=c(1,2),cex=0.9)
+
+pie(host,main="Top 2 Finish",col=c("lightgreen","grey"),labels=c("Successful(38%)","Unsuccessful"))
+pie(host1,main="Top 4 Finish",col=c("green","grey"),labels=c("Successful(62%)","Unsuccessful"))
+```
+\newline
+We can see that the host teams have finished in top 2 in more than $35%$ times of all world cups and they have finished in top 4 more than $60%$ of times.
+\newline
+\textbf{•} Now we will accompany this analysis with home team's match by match records obtained from the 'WorldCup_All' data set.
+
+We have the data of all the matches ever played in the world cup. First of all, we will see how many matches have been won by the home teams, percentage of that and then we will see the data in the form of a pie chart.
+
+```{r}
+library(dplyr)
+al=read.csv("D://Visualization/WorldCup_All.csv")
+all=data.frame(Year=al$Year,Home_Team=al$Home_Team,Away_Team=al$Away_Team,Home_Score=al$Home_Score,Away_Score=al$Away_Score,Neutral=al$Neutral,Result=al$Result)
+fil_all=filter(all,all$Neutral=='FALSE')
+```
+
+To begin with, we will use the measure: \newline \textbf{•} Expected_Outcome=[(# wins)(1) + (# losses)(-1) + (# draws)(0)]/(Total Number of Matches Involving Hosts).
+\newline If this comes out positive then we can say  that the host team is more likely to win a game, otherwise if it comes out negative then we can say the host team is more likely to lose a particular game.
+
+Now, from the data, we get: Expected_Outcome = `r sum(fil_all$Result)/nrow(fil_all)`
+
+We can see that the Expected_Outcome gives a positive number.
+
+\textbf{Comment:} Hence we can conclude that the host country is more likely to win any particular game. So, we can expect Qatar to perform well in this year's world cup.
+\newline
+
+Now we will take a look at the number of goals scored per game involving the host team.
+Number of Goals per Game Involving Host Team = `r sum(fil_all$Home_Score+fil_all$Away_Score)/nrow(fil_all)`
+
+The average Goal per Game of all teams = `r sum(al$Home_Score+al$Away_Score)/nrow(al)`
+
+We see that there is a little difference in average GPG between these two categories.
+
+However, we still have very little clue about which teams are more likely to win the world cup. Hence we move on with our analysis.
+
+\newpage
+### \underline{The Big Prize!}
+
+\textbf{• Now we will use the team rankings and the FIFA points system to try to predict which teams are likely to win the prestigious trophy.}
+\newline We will also use the FIFA23 data set of players to see which teams have the strongest players.
+```{r}
+library(dplyr)
+data=read.csv("D://Visualization/Teams2022.csv")
+fifa=read.csv("D://Visualization/Players_FIFA23.csv")
+fi_fil=filter(fifa,fifa$Country %in% data$Country)
+fi=table(fi_fil$Country)
+s=sort(fi,decreasing=T)
+```
+Our original data set had 120 players. However, all of them are not from countries which are participating in the world cup this year.
+
+Now we filter out the players who could feature in the world cup.
+
+We have `r nrow(fi_fil)` such players.
+
+Now we will depict the top 10 countries with most players among these `r nrow(fi_fil)` players:
+
+```{r}
+library(dplyr)
+data=read.csv("D://Visualization/Teams2022.csv")
+fifa=read.csv("D://Visualization/Players_FIFA23.csv")
+fi_fil=filter(fifa,fifa$Country %in% data$Country)
+fi=table(fi_fil$Country)
+s=sort(fi,decreasing=T)
+barplot(s[1:10],cex.names=0.5,ylim=c(0,20),col="darkblue",main="Barplot Showing Distribution of Top Players")
+```
+
+We see that Spain have the most players among the aforementioned `r nrow(fi_fil)` players, followed by France, Germany, England, Brazil.
+
+Now we will see the ranks and FIFA points of the top 10 teams in this year's world cup. The data is shown in a tabular form in the following page.
+\newpage
+
+```{r}
+library(lemon)
+library(knitr)
+library(dplyr)
+data=read.csv("D://Visualization/Teams2022.csv")
+df1=data.frame(Country=data$Country[1:10],FIFA_Points=data$FIFA.Points[1:10])
+kable(df1,caption="Countries Along With Their FIFA Points",align='c')
+
+fi_fil=filter(fifa,fifa$Country %in% data$Country)
+fi=table(fi_fil$Country)
+s=sort(fi,decreasing=T)
+t=data.frame(s)
+x=t$Var1[1:10]
+y=data$Country[1:10]
+z=intersect(x,y)
+wch=read.csv("D://Visualization/WorldCup_History.csv")
+df2=data.frame(table(wch$Winner))
+```
+
+\textbf{• Now we will try to come up with a team which is more likely to win this year's world cup than others.}
+
+First of all, we find out the countries which are in top 10 in terms of having elite players and FIFA points. These are:
+
+\textbf{`r z`}.
+
+So we can expect one of these teams to win the world cup this year.
+
+Among these, teams who have won the world cup previously are:
+
+\textbf{`r intersect(z,df2$Var1)`}.
+
+We need to distinguish among these teams and come up with our predicted winner.
+
+Now we will use the following index to use in our prediction.
+
+Team_Index = (wonp) + (# elite players)/10 + ((FIFA Points)-mean(FIFA Points))/sd(FIFA Points)
+
+Here, \textbf{(wonp)} is a variable, which takes value 1 if the team has previously won the world cup, 0 otherwise. \textbf{(\# elite players)} is the number of elite players the team has out of top 120 players according to the FIFA23 data set.
+
+We have decided to normalize \textbf{FIFA\_Points} because it has very high values and the distance between the values is not much. So in a linear model (as ours), adding or subtracting the FIFA points to construct our measure would not be a good idea.
+
+\textbf{How Team\_Index Measure Worls: } The measure takes into account whether the team has experience of winning such a big tournament. It is reflected by the 'wonp' variable. Since a pformer world cup champion country will have the mentality and experience to do it again, we have taken the coefficient of 'wonp' to be positive.
+
+It takes into account the number of elite footballers each team has, which is reflected by 'Elite_Players' variable.
+
+Most importantly it normalizes FIFA points, which is a measure of current strength and form of a country. 
+
+We have used a linear model to find Team_index since it is easy to understand and easy to compute.
+
+\newpage
+\textbf{The table showing Team\_Index is given by:}
+
+
+```{r}
+df2=data.frame(table(wch$Winner))
+z2=intersect(z,df2$Var1)
+f1=filter(data, data$Country %in% z)
+f0=filter(t,t$Var1 %in% z)
+df00=data.frame(Teams=f0,FiP=c(1715.22,1759.78,1650.21,1728.47,1841.3,1676.56,1773.88,1816.71,1694.51))
+
+FIFA_P2=(df00$FiP - mean(df00$FiP))/sd(df00$FiP)
+Elite_Players2=f0$Freq/10
+wonp=c(1,1,1,1,1,0,1,0,0)
+xyz=(FIFA_P2)+(Elite_Players2)+wonp
+df0=data.frame(Teams=z, FIFA_Points=df00$FiP, Elite_Players=f0$Freq, wonp,Team_Index=xyz)
+kable(df0,align='c',caption='Table Showing Team Index Values')
+```
+
+We will see this data using a bar plot.
+
+```{r}
+barplot(xyz,names.arg=z,col="lightyellow",cex.names=0.6,main="Barplot Showing Team_Index",ylim=c(-0.5,3))
+```
+
+\textbf{Comment:} We observe that Brazil has the highest Team_Index value, followed by France, Belgium and Spain.
+
+
+Hence we predict Brazil to win the world cup this year, which would be their sixth world cup in history.
+
+\newpage
+## \underline{Conclusion}
+
+We have done some exploratory data analysis on the history of FIFA World Cup and tried to predict the winner of this year's world cup. Also we predict that the average goal per game in this year's world cup will be 2.75, which is lower than the previous two world cups.
+
+At the end of our analysis, we have found that Brazil is most likely to win the world cup. However, Belgium, France, Germany and Spain would be tough competitors for the trophy.
+
+## \underline{Reference}
+
+We have used the following references to do this project.
+
+1. <https://www.google.co.in/>
+2. <https://stackoverflow.com/>
+3. <https://www.fifa.com/>
+4. <https://www.kaggle.com/>
+5. <https://www.wikipedia.org/>
+
+## \underline{The End: Addendum}
+
+This is the end of our project. 
+
+However, for some additional information, we will present a table showing every world cup winner so far.
+```{r results='asis'}
+library(lemon)
+library(knitr)
+wch=read.csv("D://Visualization/WorldCup_History.csv")
+kable(data.frame(Year=wch$Year,Winner=wch$Winner),caption='World Cup Winners')
+```
+
+
+## \textit{Thank You}
